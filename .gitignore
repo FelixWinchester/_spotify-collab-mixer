@@ -30,3 +30,10 @@ go.work.sum
 # Editor/IDE
 # .idea/
 # .vscode/
+
+# Environment variables - never commit secrets
+.env
+
+# Binary output
+bin/
+spotify-collab-mixer
