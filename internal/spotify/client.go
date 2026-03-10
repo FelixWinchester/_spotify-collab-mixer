@@ -102,7 +102,6 @@ type apiCreatedPlaylist struct {
 
 // GetPlaylist возвращает плейлист со всеми треками по его ID
 func (c *Client) GetPlaylist(playlistID string) (*models.Playlist, error) {
-	// Получаем базовую информацию о плейлисте
 	endpoint := fmt.Sprintf("%s/playlists/%s", baseURL, playlistID)
 
 	var apiPl apiPlaylist
@@ -115,10 +114,8 @@ func (c *Client) GetPlaylist(playlistID string) (*models.Playlist, error) {
 		Name: apiPl.Name,
 	}
 
-	// Добавляем треки с первой страницы
 	playlist.Tracks = append(playlist.Tracks, convertTracks(apiPl.Items.Items)...)
 
-	// Если треков больше 100 — получаем остальные страницы
 	nextURL := apiPl.Items.Next
 	for nextURL != "" {
 		var page apiTracksPage
@@ -144,12 +141,12 @@ func (c *Client) GetCurrentUserID() (string, error) {
 
 // CreatePlaylist создаёт новый плейлист для пользователя
 func (c *Client) CreatePlaylist(userID, name, description string) (string, error) {
-	endpoint := fmt.Sprintf("%s/users/%s/playlists", baseURL, userID)
+	endpoint := fmt.Sprintf("%s/me/playlists", baseURL)
 
 	body := apiCreatePlaylistRequest{
 		Name:        name,
 		Description: description,
-		Public:      false, // создаём приватным по умолчанию
+		Public:      false,
 	}
 
 	var created apiCreatedPlaylist
@@ -181,7 +178,7 @@ func (c *Client) AddTracksToPlaylist(playlistID string, tracks []models.Track) e
 		}
 
 		batch := uris[i:end]
-		endpoint := fmt.Sprintf("%s/playlists/%s/tracks", baseURL, playlistID)
+		endpoint := fmt.Sprintf("%s/playlists/%s/items", baseURL, playlistID)
 
 		if err := c.post(endpoint, apiAddTracksRequest{URIs: batch}, nil); err != nil {
 			return fmt.Errorf("failed to add tracks batch %d-%d: %w", i, end, err)
@@ -263,7 +260,6 @@ func checkStatus(resp *http.Response) error {
 		return nil
 	}
 
-	// Пробуем прочитать сообщение об ошибке от Spotify
 	var apiErr struct {
 		Error struct {
 			Status  int    `json:"status"`
