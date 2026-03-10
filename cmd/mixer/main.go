@@ -30,13 +30,8 @@ func main() {
 	fmt.Println("✅ Authenticated!")
 
 	// Проверяем аргументы
-	// Минимум 3 аргумента: playlist1 playlist2 "New Playlist Name"
 	if len(os.Args) < 4 {
-		fmt.Println("\n💡 Usage:")
-		fmt.Println("   go run cmd/mixer/main.go <playlist1_id> <playlist2_id> ... <new_playlist_name>")
-		fmt.Println("\n   Example:")
-		fmt.Println("   go run cmd/mixer/main.go ABC123 DEF456 \"My Mixed Playlist\"")
-		fmt.Println("\n   You can merge 2 or more playlists at once.")
+		printUsage()
 		os.Exit(0)
 	}
 
@@ -69,13 +64,13 @@ func main() {
 
 	// Запускаем слияние
 	fmt.Println("\n🔀 Merging playlists...")
-	merger := playlist.New(false) // false = умная дедупликация
+	merger := playlist.New(false)
 	result := merger.Merge(playlists)
 
 	// Выводим статистику
 	result.PrintStats()
 
-	// Создаём новый плейлист в Spotify
+	// Создаём новый плейлист
 	fmt.Printf("\n📤 Creating new playlist \"%s\"...\n", newPlaylistName)
 
 	description := fmt.Sprintf(
@@ -89,13 +84,25 @@ func main() {
 		log.Fatalf("❌ Failed to create playlist: %v", err)
 	}
 
-	// Добавляем треки в новый плейлист
-	fmt.Printf("➕ Adding %d tracks to playlist...\n", result.UniqueCount)
+	// Добавляем треки
+	fmt.Printf("➕ Adding %d tracks...\n", result.UniqueCount)
 	if err := client.AddTracksToPlaylist(newPlaylistID, result.Tracks); err != nil {
 		log.Fatalf("❌ Failed to add tracks: %v", err)
 	}
 
-	// Финальное сообщение
-	fmt.Printf("\n✅ Done! Playlist \"%s\" created successfully!\n", newPlaylistName)
+	// Финал
+	fmt.Printf("\n✅ Done!\n")
 	fmt.Printf("🎵 Open in Spotify: https://open.spotify.com/playlist/%s\n", newPlaylistID)
+}
+
+func printUsage() {
+	fmt.Println("\n💡 Usage:")
+	fmt.Println("   go run cmd/mixer/main.go <playlist1_id> <playlist2_id> ... <new_playlist_name>")
+	fmt.Println("\n   Example:")
+	fmt.Println("   go run cmd/mixer/main.go ABC123 DEF456 \"My Mixed Playlist\"")
+	fmt.Println("\n   You can merge 2 or more playlists at once.")
+	fmt.Println("\n   How to get playlist ID:")
+	fmt.Println("   Open playlist in Spotify → Share → Copy link")
+	fmt.Println("   https://open.spotify.com/playlist/ABC123?si=xxx")
+	fmt.Println("                                              ^^^^^^ this is the ID")
 }
